@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useAuth } from './AuthContext';
+import { useAuth } from '../context/AuthContext';
 import StudentScreen from './StudentScreen';
 import LecturerScreen from './LecturerScreen';
 import PRLScreen from './PRLScreen';

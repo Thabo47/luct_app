@@ -4,9 +4,9 @@ import {
   StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, Alert,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useAuth } from './AuthContext';
-import { CoursePicker, OptionPicker } from './SharedComponents';
-import { prospectusCatalog } from './ProspectusData';
+import { useAuth } from '../context/AuthContext';
+import { getCourseOptionsForFaculty, getFacultyOptions, prospectusCatalog } from '../../ProspectusData';
+import { DropdownField } from '../components/AppUI';
 
 const ROLES = ['student', 'lecturer', 'prl', 'pl'];
 
@@ -23,20 +23,20 @@ export default function LoginScreen({ initialError = null }) {
 
   const selectedFaculty = prospectusCatalog.find((faculty) => faculty.id === selectedFacultyId) || null;
   const selectedCourse = selectedFaculty?.courses.find((course) => course.id === selectedCourseId) || null;
-  const requiresFaculty = role === 'student' || role === 'prl' || role === 'pl';
-  const requiresCourse = role === 'student' || role === 'prl' || role === 'pl';
+  const requiresFaculty = role === 'student' || role === 'prl';
+  const requiresCourse = role === 'student' || role === 'prl';
   const facultyTitle =
     role === 'student'
       ? 'Student Faculty'
       : role === 'prl'
         ? 'PRL Faculty Scope'
-        : 'PL Faculty Scope';
+        : 'Faculty';
   const courseTitle =
     role === 'student'
       ? 'Student Course'
       : role === 'prl'
         ? 'PRL Stream / Course'
-        : 'PL Program / Course';
+        : 'Course';
 
   async function handleLogin() {
     if (!email || !password) { Alert.alert('Fill in all fields'); return; }
@@ -66,7 +66,9 @@ export default function LoginScreen({ initialError = null }) {
         password,
         name,
         role,
+        facultyId: requiresFaculty ? selectedFaculty?.id || null : null,
         facultyName: requiresFaculty ? selectedFaculty?.name || null : null,
+        courseId: requiresCourse ? selectedCourse?.id || null : null,
         courseName: requiresCourse ? selectedCourse?.name || null : null,
         courseCode: requiresCourse ? selectedCourse?.code || null : null,
       });
@@ -120,34 +122,43 @@ export default function LoginScreen({ initialError = null }) {
             </View>
             {requiresFaculty ? (
               <>
-                <OptionPicker
-                  title={facultyTitle}
-                  options={prospectusCatalog.map((faculty) => ({
-                    value: faculty.id,
-                    label: faculty.name,
-                  }))}
-                  selectedValue={selectedFacultyId}
-                  onSelect={(option) => {
-                    const faculty = prospectusCatalog.find((item) => item.id === option.value) || null;
+                <DropdownField
+                  label={facultyTitle}
+                  options={getFacultyOptions()}
+                  value={selectedFacultyId}
+                  onChange={(nextValue) => {
+                    const faculty = prospectusCatalog.find((item) => item.id === nextValue) || null;
                     setSelectedFacultyId(faculty?.id || null);
                     setSelectedCourseId(faculty?.courses?.[0]?.id || null);
                   }}
-                  emptyText="No faculties are loaded."
                 />
                 {requiresCourse ? (
-                  <CoursePicker
-                    title={courseTitle}
-                    courses={(selectedFaculty?.courses || []).map((course) => ({
-                      id: course.id,
-                      courseCode: course.code || course.name,
-                      courseName: course.name,
+                  <DropdownField
+                    label={courseTitle}
+                    options={getCourseOptionsForFaculty(selectedFacultyId).map((item) => ({
+                      value: item.id,
+                      label: `${item.courseName} (${item.courseCode})`,
                     }))}
-                    selectedCourseCode={selectedCourse?.code || null}
-                    onSelect={(item) => setSelectedCourseId(item.id)}
-                    emptyText="No courses are loaded for this faculty."
+                    value={selectedCourseId}
+                    onChange={(nextValue) => setSelectedCourseId(nextValue)}
                   />
                 ) : null}
+                {role === 'student' ? (
+                  <Text style={styles.helper}>
+                    Students register under a faculty and course, then wait for PRL or PL to assign modules under that course.
+                  </Text>
+                ) : null}
               </>
+            ) : null}
+            {role === 'lecturer' ? (
+              <Text style={styles.helper}>
+                Lecturers can register and then wait for PL module assignment before submitting reports.
+              </Text>
+            ) : null}
+            {role === 'pl' ? (
+              <Text style={styles.helper}>
+                PL accounts manage all faculties, courses, lecturer assignment, reports, and monitoring.
+              </Text>
             ) : null}
           </>
         )}
@@ -192,4 +203,5 @@ const styles = StyleSheet.create({
   btnTxt:       { color: '#fff', fontWeight: '700', fontSize: 16 },
   toggle:       { color: '#93c5fd', textAlign: 'center', marginTop: 18, fontSize: 13, fontWeight: '600' },
   error:        { color: '#fca5a5', textAlign: 'center', marginBottom: 16, fontSize: 13 },
+  helper:       { color: '#94a3b8', fontSize: 12, lineHeight: 18, marginTop: -2, marginBottom: 14 },
 });

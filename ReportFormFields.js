@@ -18,6 +18,7 @@ export default function ReportFormFields({ selectedClass = null }) {
 
   const [facultyName, setFacultyName]       = useState('');
   const [className, setClassName]           = useState('');
+  const [moduleCode, setModuleCode]         = useState('');
   const [week, setWeek]                     = useState('Week 1');
   const [dateOfLecture, setDateOfLecture]   = useState('');
   const [courseName, setCourseName]         = useState('');
@@ -33,16 +34,23 @@ export default function ReportFormFields({ selectedClass = null }) {
   const [selectedFacultyId, setSelectedFacultyId] = useState(prospectusCatalog[0]?.id || null);
 
   useEffect(() => {
-    if (!selectedClass) return;
+    if (!selectedClass) {
+      setFacultyName(profile?.facultyName || '');
+      setClassName('');
+      setModuleCode('');
+      setLecturerName(profile?.name || '');
+      return;
+    }
 
-    setFacultyName(selectedClass.facultyName || '');
-    setClassName(selectedClass.className || selectedClass.courseName || '');
+    setFacultyName(selectedClass.facultyName || profile?.facultyName || '');
+    setClassName(selectedClass.className || selectedClass.moduleName || selectedClass.courseName || '');
+    setModuleCode(selectedClass.moduleCode || '');
     setCourseName(selectedClass.courseName || '');
     setCourseCode(selectedClass.courseCode || '');
     setLecturerName(selectedClass.lecturerName || profile?.name || '');
     setVenue(selectedClass.venue || '');
     setSchedTime(selectedClass.scheduledTime || '');
-  }, [selectedClass, profile?.name]);
+  }, [selectedClass, profile?.facultyName, profile?.name]);
 
   useEffect(() => {
     const matchedFaculty = prospectusCatalog.find((faculty) => faculty.id === selectedFacultyId) || null;
@@ -77,7 +85,7 @@ export default function ReportFormFields({ selectedClass = null }) {
   }, [courseCode]);
 
   async function handleSubmit() {
-    if (!facultyName || !className || !courseName || !courseCode || !lecturerName || !topic) {
+    if (!facultyName || !className || !courseName || !courseCode || !lecturerName || !venue || !schedTime || !topic || !dateOfLecture) {
       Alert.alert('Missing fields', 'Please fill in all required fields.');
       return;
     }
@@ -104,10 +112,17 @@ export default function ReportFormFields({ selectedClass = null }) {
 
       await addDoc(collection(db, 'reports'), {
         facultyName, className, week, dateOfLecture,
+        moduleCode: moduleCode || null,
         courseName, courseCode: courseCode.toUpperCase(),
         lecturerName, studentsPresent: Number(studentsPresent),
         totalStudents: Number(totalStudents),
-        venue, schedTime, topic, outcomes, recommendations,
+        venue,
+        schedTime,
+        scheduledLectureTime: schedTime,
+        topic,
+        outcomes,
+        learningOutcomes: outcomes,
+        recommendations,
         submittedBy: user.uid,
         createdAt: serverTimestamp(),
       });
@@ -145,7 +160,10 @@ export default function ReportFormFields({ selectedClass = null }) {
         emptyText="No prospectus faculties are loaded."
       />
       <Field label="Faculty Name *" value={facultyName} onChangeText={setFacultyName} />
-      <Field label="Class Name *" value={className} onChangeText={setClassName} />
+      <Field label="Course Name *" value={courseName} onChangeText={setCourseName} />
+      <Field label="Course Code *" value={courseCode} onChangeText={setCourseCode} autoCapitalize="characters" />
+      <Field label="Module / Class Name *" value={className} onChangeText={setClassName} />
+      <Field label="Module Code" value={moduleCode} onChangeText={setModuleCode} autoCapitalize="characters" />
 
       <Text style={styles.label}>Week of Reporting</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.weekRow}>
@@ -175,8 +193,6 @@ export default function ReportFormFields({ selectedClass = null }) {
         }}
         emptyText="No prospectus courses are loaded for this faculty."
       />
-      <Field label="Course Name *" value={courseName} onChangeText={setCourseName} />
-      <Field label="Course Code *" value={courseCode} onChangeText={setCourseCode} autoCapitalize="characters" />
       <Field label="Lecturer's Name *" value={lecturerName} onChangeText={setLecturerName} />
       <Field label="Actual Students Present *" value={studentsPresent} onChangeText={setStudentsPresent} keyboardType="numeric" />
 

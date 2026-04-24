@@ -10,6 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   addDoc,
   collection,
@@ -22,6 +23,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { useAuth } from './AuthContext';
+import { getCourseLabel, getModuleCode, getModuleLabel } from './src/utils/academicStructure';
 
 export function Header({ title }) {
   const { logout } = useAuth();
@@ -44,6 +46,39 @@ export function RatingWidget({ targetId, targetName, context = 'general' }) {
   const { user } = useAuth();
   const [rating, setRating] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [savedRating, setSavedRating] = useState(null);
+  const storageKey = user?.uid && targetId ? `rating:${user.uid}:${context}:${targetId}` : null;
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadSavedRating() {
+      if (!storageKey) {
+        setSavedRating(null);
+        return;
+      }
+
+      try {
+        const raw = await AsyncStorage.getItem(storageKey);
+        if (!active) return;
+        const parsed = raw ? JSON.parse(raw) : null;
+        setSavedRating(parsed);
+        if (parsed?.rating) {
+          setRating(parsed.rating);
+        }
+      } catch {
+        if (active) {
+          setSavedRating(null);
+        }
+      }
+    }
+
+    loadSavedRating();
+
+    return () => {
+      active = false;
+    };
+  }, [storageKey]);
 
   async function submit() {
     if (!rating) {
@@ -65,8 +100,16 @@ export function RatingWidget({ targetId, targetName, context = 'general' }) {
         ratedBy: user.uid,
         createdAt: serverTimestamp(),
       });
+      const nextSaved = {
+        rating,
+        targetName,
+        savedAt: new Date().toISOString(),
+      };
+      if (storageKey) {
+        await AsyncStorage.setItem(storageKey, JSON.stringify(nextSaved));
+      }
+      setSavedRating(nextSaved);
       Alert.alert('Rating submitted!');
-      setRating(0);
     } catch (e) {
       Alert.alert('Error', e.message);
     }
@@ -77,6 +120,11 @@ export function RatingWidget({ targetId, targetName, context = 'general' }) {
     <View style={r.card}>
       <Text style={r.title}>Rate: {targetName}</Text>
       <Text style={r.subtitle}>Your feedback helps improve reporting quality.</Text>
+      {savedRating ? (
+        <Text style={r.savedText}>
+          Saved rating: {savedRating.rating}/5
+        </Text>
+      ) : null}
       <View style={r.stars}>
         {[1, 2, 3, 4, 5].map((star) => (
           <TouchableOpacity key={star} style={r.starWrap} onPress={() => setRating(star)}>
@@ -189,21 +237,24 @@ export function OptionPicker({
   );
 }
 
-export function AttendanceTable({ courseCode }) {
+export function AttendanceTable({ courseCode, moduleCode = null }) {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!courseCode) {
+    if (!courseCode && !moduleCode) {
       setLoading(false);
-      setError('A course code is required to load attendance.');
+      setError('A course or module is required to load attendance.');
       return;
     }
 
     async function fetchAttendance() {
       try {
-        const attendanceQuery = query(collection(db, 'reports'), where('courseCode', '==', courseCode));
+        const attendanceQuery = query(
+          collection(db, 'reports'),
+          where(moduleCode ? 'moduleCode' : 'courseCode', '==', moduleCode || courseCode)
+        );
         const snap = await getDocs(attendanceQuery);
         const nextReports = snap.docs
           .map((d) => ({ id: d.id, ...d.data() }))
@@ -226,7 +277,7 @@ export function AttendanceTable({ courseCode }) {
 
   if (loading) return <ActivityIndicator color="#6366f1" style={{ marginTop: 20 }} />;
   if (error) return <Text style={shared.errorText}>{error}</Text>;
-  if (!reports.length) return <Text style={shared.helperText}>No attendance reports found for {courseCode}.</Text>;
+  if (!reports.length) return <Text style={shared.helperText}>No attendance reports found for {moduleCode || courseCode}.</Text>;
 
   return (
     <View style={a.container}>
@@ -262,6 +313,8 @@ export function AttendanceTable({ courseCode }) {
 export function MonitorCard({
   maxItems = 10,
   courseCode = null,
+  moduleCode = null,
+  facultyName = null,
   submittedBy = null,
   title = 'Latest Reports',
   emptyText = 'No reports available for monitoring yet.',
@@ -275,8 +328,8 @@ export function MonitorCard({
       try {
         const queryParts = [collection(db, 'reports')];
 
-        if (courseCode) {
-          queryParts.push(where('courseCode', '==', courseCode));
+        if (moduleCode || courseCode) {
+          queryParts.push(where(moduleCode ? 'moduleCode' : 'courseCode', '==', moduleCode || courseCode));
         }
 
         if (submittedBy) {
@@ -287,6 +340,7 @@ export function MonitorCard({
         const snap = await getDocs(reportsQuery);
         const nextReports = snap.docs
           .map((d) => ({ id: d.id, ...d.data() }))
+          .filter((item) => !facultyName || item.facultyName === facultyName)
           .sort((a, b) => {
             const aTime = a.createdAt?.seconds || 0;
             const bTime = b.createdAt?.seconds || 0;
@@ -303,7 +357,7 @@ export function MonitorCard({
     }
 
     fetchReports();
-  }, [courseCode, maxItems, submittedBy]);
+  }, [courseCode, moduleCode, facultyName, maxItems, submittedBy]);
 
   if (loading) return <ActivityIndicator color="#6366f1" style={{ marginTop: 30 }} />;
   if (error) return <Text style={shared.errorText}>{error}</Text>;
@@ -336,12 +390,18 @@ export function MonitorCard({
         </View>
       }
       renderItem={({ item }) => (
-        <View style={m.card}>
-          <View style={m.row}>
-            <Text style={m.course}>{item.courseCode}</Text>
+          <View style={m.card}>
+            <View style={m.row}>
+            <Text style={m.course}>{getModuleCode(item)}</Text>
             <Text style={m.week}>{item.week}</Text>
           </View>
-          <Text style={m.name}>{item.courseName}</Text>
+          <Text style={m.name}>{getModuleLabel(item)}</Text>
+          <Text style={m.sub}>
+            <MaterialCommunityIcons name="domain" size={13} color="#94a3b8" /> {item.facultyName || 'Faculty pending'}
+          </Text>
+          <Text style={m.sub}>
+            <MaterialCommunityIcons name="book-outline" size={13} color="#94a3b8" /> Course: {getCourseLabel(item)}
+          </Text>
           <Text style={m.sub}>
             <MaterialCommunityIcons name="account-tie-outline" size={13} color="#94a3b8" /> {item.lecturerName || 'Unassigned'}
           </Text>
@@ -393,6 +453,7 @@ const r = StyleSheet.create({
   card: { backgroundColor: '#111827', borderRadius: 18, padding: 20, marginBottom: 16, borderWidth: 1, borderColor: '#1f2937' },
   title: { color: '#f1f5f9', fontSize: 15, fontWeight: '600', marginBottom: 14 },
   subtitle: { color: '#94a3b8', fontSize: 12, marginTop: -8, marginBottom: 14 },
+  savedText: { color: '#86efac', fontSize: 12, marginBottom: 10, fontWeight: '700' },
   stars: { flexDirection: 'row', gap: 10, marginBottom: 10 },
   starWrap: {
     backgroundColor: '#0f172a',

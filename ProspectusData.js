@@ -154,6 +154,10 @@ export function findFacultyByName(name) {
   return prospectusCatalog.find((faculty) => faculty.name === name) || null;
 }
 
+export function findFacultyById(id) {
+  return prospectusCatalog.find((faculty) => faculty.id === id) || null;
+}
+
 export function findCourseByName(courseName) {
   for (const faculty of prospectusCatalog) {
     const course = faculty.courses.find((item) => item.name === courseName);
@@ -162,4 +166,36 @@ export function findCourseByName(courseName) {
     }
   }
   return null;
+}
+
+export function findCourseByCode(courseCode) {
+  const normalizedCode = courseCode?.trim().toUpperCase();
+  if (!normalizedCode) {
+    return null;
+  }
+
+  for (const faculty of prospectusCatalog) {
+    const course = faculty.courses.find((item) => item.code?.trim().toUpperCase() === normalizedCode);
+    if (course) {
+      return { faculty, course };
+    }
+  }
+
+  return null;
+}
+
+export function getFacultyOptions() {
+  return prospectusCatalog.map((faculty) => ({
+    value: faculty.id,
+    label: faculty.name,
+  }));
+}
+
+export function getCourseOptionsForFaculty(facultyId) {
+  const faculty = findFacultyById(facultyId);
+  return (faculty?.courses || []).map((course) => ({
+    id: course.id,
+    courseCode: course.code || course.name,
+    courseName: course.name,
+  }));
 }

@@ -109,7 +109,17 @@ export function AuthProvider({ children }) {
     await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
   }
 
-  async function register({ email, password, name, role, facultyName = null, courseName = null, courseCode = null }) {
+  async function register({
+    email,
+    password,
+    name,
+    role,
+    facultyId = null,
+    facultyName = null,
+    courseId = null,
+    courseName = null,
+    courseCode = null,
+  }) {
     setAuthError(null);
     const normalizedEmail = email.trim().toLowerCase();
     const normalizedName = name.trim();
@@ -128,9 +138,13 @@ export function AuthProvider({ children }) {
           name: normalizedName,
           email: normalizedEmail,
           role,
+          facultyId: facultyId || null,
           facultyName: facultyName || null,
+          courseId: courseId || null,
           courseName: courseName || null,
           courseCode: courseCode || null,
+          assignedCourseCodes: role === 'student' ? [] : null,
+          assignedCourseNames: role === 'student' ? [] : null,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         },

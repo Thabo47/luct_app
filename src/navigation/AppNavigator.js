@@ -3,8 +3,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useAuth } from '../context/AuthContext';
-import LoginScreen from '../../LoginScreen';
-import RoleNavigator from '../../RoleNavigator';
+import LoginScreen from '../screens/LoginScreen';
+import RoleNavigator from '../screens/RoleNavigator';
 
 const Stack = createStackNavigator();
 
