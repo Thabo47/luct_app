@@ -24,6 +24,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "6ddace65-cd26-4846-a5d5-b1ddd7a23f6d"
+      }
+    },
+    "owner": "thiza7212"
   }
 }
