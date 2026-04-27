@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
-import { getCourseOptionsForFaculty, getFacultyOptions, prospectusCatalog } from '../../ProspectusData';
+import { getCourseOptionsForFaculty, getFacultyOptions, prospectusCatalog } from '../prospectusData';
 import { DropdownField } from '../components/AppUI';
 
 const ROLES = ['student', 'lecturer', 'prl', 'pl'];

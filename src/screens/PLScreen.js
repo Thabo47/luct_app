@@ -13,9 +13,9 @@ import {
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { addDoc, collection, doc, getDocs, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { db } from '../../firebase';
-import { Header, RatingWidget } from '../../SharedComponents';
-import { getCourseOptionsForFaculty, getFacultyOptions, prospectusCatalog } from '../../ProspectusData';
+import { db } from '../config/firebase';
+import { Header, RatingWidget } from '../sharedComponents';
+import { getCourseOptionsForFaculty, getFacultyOptions, prospectusCatalog } from '../prospectusData';
 import { useAuth } from '../context/AuthContext';
 import { DropdownField, EmptyState, InfoRows, PageSection, StatsGrid } from '../components/AppUI';
 import { getCourseLabel, getModuleCode, getModuleLabel, normalizeModule, normalizeReport } from '../utils/academicStructure';

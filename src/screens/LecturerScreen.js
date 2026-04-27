@@ -3,10 +3,10 @@ import { View, Text, FlatList, StyleSheet, ScrollView, ActivityIndicator } from 
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { db } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
-import { AttendanceTable, CoursePicker, Header, MonitorCard, RatingWidget } from '../../SharedComponents';
-import ReportFormFields from '../../ReportFormFields';
+import { AttendanceTable, CoursePicker, Header, MonitorCard, RatingWidget } from '../sharedComponents';
+import ReportFormFields from '../reportForm';
 import { getCourseLabel, getModuleCode, getModuleLabel, normalizeModule } from '../utils/academicStructure';
 
 const Tab = createBottomTabNavigator();

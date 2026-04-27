@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { addDoc, collection, getDocs, query, serverTimestamp, where } from 'firebase/firestore';
-import { AttendanceTable, CoursePicker, Header, MonitorCard, RatingWidget } from '../../SharedComponents';
-import { db } from '../../firebase';
+import { AttendanceTable, CoursePicker, Header, MonitorCard, RatingWidget } from '../sharedComponents';
+import { db } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
 import { getCourseLabel, getModuleCode, getModuleLabel, moduleMatchesStudentCourse, normalizeModule } from '../utils/academicStructure';
 
