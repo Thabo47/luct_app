@@ -9,10 +9,12 @@ thrilled-indigo-hummus/
 |-- App.js
 |-- index.js
 |-- src/
+|   |-- backend/
+|   |   |-- firebase/
+|   |   |   |-- config.js
+|   |   |   |-- firestore.js
 |   |-- components/
 |   |   |-- AppUI.js
-|   |-- config/
-|   |   |-- firebase.js
 |   |-- context/
 |   |   |-- AuthContext.js
 |   |-- navigation/
@@ -28,8 +30,6 @@ thrilled-indigo-hummus/
 |   |   |-- LecturerScreen.js
 |   |   |-- PRLScreen.js
 |   |   |-- PLScreen.js
-|   |-- services/
-|   |   |-- firestore.js
 |   |-- sharedComponents/
 |   |   |-- SharedComponents.js
 |   |-- utils/
@@ -43,9 +43,10 @@ thrilled-indigo-hummus/
 - Role switching: `src/screens/RoleNavigator.js`
 - Screens and UI pages: `src/screens/`
 - Reusable UI pieces: `src/components/` and `src/sharedComponents/`
-- Firebase setup: `src/config/firebase.js`
+- Backend folder: `src/backend/`
+- Firebase setup: `src/backend/firebase/config.js`
 - Firebase auth/session logic: `src/context/AuthContext.js`
-- Firebase Firestore API layer: `src/services/firestore.js`
+- Firebase Firestore API layer: `src/backend/firebase/firestore.js`
 - Academic helper logic: `src/utils/academicStructure.js`
 
 ## Important Files
@@ -60,11 +61,11 @@ thrilled-indigo-hummus/
 
 ### Firebase
 
-- Config: `src/config/firebase.js`
+- Config: `src/backend/firebase/config.js`
 - Auth: `src/context/AuthContext.js`
-- Firestore API: `src/services/firestore.js`
+- Firestore API: `src/backend/firebase/firestore.js`
 
 ## Notes
 
-- If you want all Firebase read/write code in one place, keep moving Firestore queries from screens into `src/services/firestore.js`.
-- `src/services/firestore.js` is now the main file to grow for collection queries like classes, reports, ratings, attendance, and users.
+- If you want all Firebase read/write code in one place, keep moving Firestore queries from screens into `src/backend/firebase/firestore.js`.
+- `src/backend/firebase/firestore.js` is now the main file to grow for collection queries like classes, reports, ratings, attendance, and users.

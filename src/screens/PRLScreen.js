@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { doc, getDocs, collection, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { db } from '../backend/firebase/config';
 import { CoursePicker, Header, MonitorCard, RatingWidget } from '../sharedComponents/SharedComponents';
 import { useAuth } from '../context/AuthContext';
 import { getCourseLabel, getModuleCode, getModuleLabel, normalizeModule, normalizeReport } from '../utils/academicStructure';

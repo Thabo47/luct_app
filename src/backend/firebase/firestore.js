@@ -10,8 +10,8 @@ import {
   updateDoc,
   where,
 } from 'firebase/firestore';
-import { db } from '../config/firebase';
-import { moduleMatchesStudentCourse, normalizeModule, normalizeReport } from '../utils/academicStructure';
+import { db } from './config';
+import { moduleMatchesStudentCourse, normalizeModule, normalizeReport } from '../../utils/academicStructure';
 
 const mapDocs = (snapshot, mapper = (item) => item) =>
   snapshot.docs.map((item) => mapper({ id: item.id, ...item.data() }));

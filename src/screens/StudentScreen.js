@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { AttendanceTable, CoursePicker, Header, MonitorCard, RatingWidget } from '../sharedComponents/SharedComponents';
 import { useAuth } from '../context/AuthContext';
-import { getStudentAttendance, getStudentModules, signStudentAttendance } from '../services/firestore';
+import { getStudentAttendance, getStudentModules, signStudentAttendance } from '../backend/firebase/firestore';
 import { getCourseLabel, getModuleCode, getModuleLabel } from '../utils/academicStructure';
 
 const Tab = createBottomTabNavigator();

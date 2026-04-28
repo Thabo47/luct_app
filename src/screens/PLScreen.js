@@ -16,7 +16,7 @@ import { Header, RatingWidget } from '../sharedComponents/SharedComponents';
 import { getCourseOptionsForFaculty, getFacultyOptions, prospectusCatalog } from '../prospectusData';
 import { useAuth } from '../context/AuthContext';
 import { DropdownField, EmptyState, InfoRows, PageSection, StatsGrid } from '../components/AppUI';
-import { assignLecturerToClass, createClass, getClasses, getCollectionItems, getRatings, getReports, getUsers } from '../services/firestore';
+import { assignLecturerToClass, createClass, getClasses, getCollectionItems, getRatings, getReports, getUsers } from '../backend/firebase/firestore';
 import { getCourseLabel, getModuleCode, getModuleLabel } from '../utils/academicStructure';
 
 const Tab = createBottomTabNavigator();

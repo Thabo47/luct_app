@@ -12,7 +12,7 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/AuthContext';
-import { getReports, getReportsByField, submitRating } from '../services/firestore';
+import { getReports, getReportsByField, submitRating } from '../backend/firebase/firestore';
 import { getCourseLabel, getModuleCode, getModuleLabel } from '../utils/academicStructure';
 
 export function Header({ title }) {

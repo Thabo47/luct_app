@@ -6,7 +6,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { CoursePicker, OptionPicker } from '../sharedComponents/SharedComponents';
 import { findCourseByName, prospectusCatalog } from '../prospectusData';
-import { getCourseMeta, saveCourseMeta, submitReport } from '../services/firestore';
+import { getCourseMeta, saveCourseMeta, submitReport } from '../backend/firebase/firestore';
 
 const WEEKS = Array.from({ length: 14 }, (_, i) => `Week ${i + 1}`);
 

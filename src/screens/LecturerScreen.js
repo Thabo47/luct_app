@@ -5,7 +5,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { AttendanceTable, CoursePicker, Header, MonitorCard, RatingWidget } from '../sharedComponents/SharedComponents';
 import ReportFormFields from '../reportForm/ReportFormFields';
-import { getClassesByLecturer } from '../services/firestore';
+import { getClassesByLecturer } from '../backend/firebase/firestore';
 import { getCourseLabel, getModuleCode, getModuleLabel } from '../utils/academicStructure';
 
 const Tab = createBottomTabNavigator();
