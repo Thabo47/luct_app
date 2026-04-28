@@ -1,11 +1,70 @@
-# Sample Snack app
+# LUCT Reporter
 
-Open the `App.js` file to start writing some code. You can preview the changes directly on your phone or tablet by scanning the **QR code** or use the iOS or Android emulators. When you're done, click **Save** and share the link!
+Expo React Native app for lecture monitoring, reporting, attendance, and ratings.
 
-When you're ready to see everything that Expo provides (or if you want to use your own editor) you can **Download** your project and use it with [expo cli](https://docs.expo.dev/get-started/installation/#expo-cli)).
+## Clear Structure
 
-All projects created in Snack are publicly available, so you can easily share the link to this project via link, or embed it on a web page with the `<>` button.
+```text
+thrilled-indigo-hummus/
+|-- App.js
+|-- index.js
+|-- src/
+|   |-- components/
+|   |   |-- AppUI.js
+|   |-- config/
+|   |   |-- firebase.js
+|   |-- context/
+|   |   |-- AuthContext.js
+|   |-- navigation/
+|   |   |-- AppNavigator.js
+|   |-- prospectusData/
+|   |   |-- prospectusCatalog.js
+|   |-- reportForm/
+|   |   |-- ReportFormFields.js
+|   |-- screens/
+|   |   |-- LoginScreen.js
+|   |   |-- RoleNavigator.js
+|   |   |-- StudentScreen.js
+|   |   |-- LecturerScreen.js
+|   |   |-- PRLScreen.js
+|   |   |-- PLScreen.js
+|   |-- services/
+|   |   |-- firestore.js
+|   |-- sharedComponents/
+|   |   |-- SharedComponents.js
+|   |-- utils/
+|   |   |-- academicStructure.js
+```
 
-If you're having problems, you can tweet to us [@expo](https://twitter.com/expo) or ask in our [forums](https://forums.expo.dev/c/expo-dev-tools/61) or [Discord](https://chat.expo.dev/).
+## What Each Part Does
 
-Snack is Open Source. You can find the code on the [GitHub repo](https://github.com/expo/snack).
+- Frontend entry: `App.js`
+- Navigation: `src/navigation/AppNavigator.js`
+- Role switching: `src/screens/RoleNavigator.js`
+- Screens and UI pages: `src/screens/`
+- Reusable UI pieces: `src/components/` and `src/sharedComponents/`
+- Firebase setup: `src/config/firebase.js`
+- Firebase auth/session logic: `src/context/AuthContext.js`
+- Firebase Firestore API layer: `src/services/firestore.js`
+- Academic helper logic: `src/utils/academicStructure.js`
+
+## Important Files
+
+### Frontend
+
+- `src/screens/LoginScreen.js`
+- `src/screens/StudentScreen.js`
+- `src/screens/LecturerScreen.js`
+- `src/screens/PRLScreen.js`
+- `src/screens/PLScreen.js`
+
+### Firebase
+
+- Config: `src/config/firebase.js`
+- Auth: `src/context/AuthContext.js`
+- Firestore API: `src/services/firestore.js`
+
+## Notes
+
+- If you want all Firebase read/write code in one place, keep moving Firestore queries from screens into `src/services/firestore.js`.
+- `src/services/firestore.js` is now the main file to grow for collection queries like classes, reports, ratings, attendance, and users.

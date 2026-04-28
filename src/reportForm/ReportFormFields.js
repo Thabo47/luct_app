@@ -3,11 +3,10 @@ import {
   View, Text, TextInput, ScrollView,
   TouchableOpacity, StyleSheet, Alert, ActivityIndicator,
 } from 'react-native';
-import { collection, addDoc, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
-import { CoursePicker, OptionPicker } from '../sharedComponents';
+import { CoursePicker, OptionPicker } from '../sharedComponents/SharedComponents';
 import { findCourseByName, prospectusCatalog } from '../prospectusData';
+import { getCourseMeta, saveCourseMeta, submitReport } from '../services/firestore';
 
 const WEEKS = Array.from({ length: 14 }, (_, i) => `Week ${i + 1}`);
 
@@ -75,8 +74,8 @@ export default function ReportFormFields({ selectedClass = null }) {
     const fetchTotal = async () => {
       setLoading(true);
       try {
-        const snap = await getDoc(doc(db, 'courseMeta', courseCode.trim().toUpperCase()));
-        if (snap.exists()) setTotalStudents(String(snap.data().totalStudents));
+        const meta = await getCourseMeta(courseCode);
+        if (meta?.totalStudents !== undefined) setTotalStudents(String(meta.totalStudents));
       } catch {}
       setLoading(false);
     };
@@ -103,12 +102,12 @@ export default function ReportFormFields({ selectedClass = null }) {
     setSaving(true);
     try {
       if (totalStudents) {
-        await setDoc(doc(db, 'courseMeta', courseCode.trim().toUpperCase()), {
+        await saveCourseMeta(courseCode, {
           totalStudents: Number(totalStudents),
-        }, { merge: true });
+        });
       }
 
-      await addDoc(collection(db, 'reports'), {
+      await submitReport({
         facultyName, className, week, dateOfLecture,
         moduleCode: moduleCode || null,
         courseName, courseCode: courseCode.toUpperCase(),
@@ -122,7 +121,6 @@ export default function ReportFormFields({ selectedClass = null }) {
         learningOutcomes: outcomes,
         recommendations,
         submittedBy: user.uid,
-        createdAt: serverTimestamp(),
       });
 
       Alert.alert('Success', 'Report submitted successfully!');

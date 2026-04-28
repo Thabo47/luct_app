@@ -2,12 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
-import { AttendanceTable, CoursePicker, Header, MonitorCard, RatingWidget } from '../sharedComponents';
-import ReportFormFields from '../reportForm';
-import { getCourseLabel, getModuleCode, getModuleLabel, normalizeModule } from '../utils/academicStructure';
+import { AttendanceTable, CoursePicker, Header, MonitorCard, RatingWidget } from '../sharedComponents/SharedComponents';
+import ReportFormFields from '../reportForm/ReportFormFields';
+import { getClassesByLecturer } from '../services/firestore';
+import { getCourseLabel, getModuleCode, getModuleLabel } from '../utils/academicStructure';
 
 const Tab = createBottomTabNavigator();
 
@@ -214,10 +213,7 @@ export default function LecturerScreen() {
     async function fetchClasses() {
       setLoadingClasses(true);
       try {
-        const classesQuery = query(collection(db, 'classes'), where('lecturerId', '==', user.uid));
-        const snap = await getDocs(classesQuery);
-        const nextClasses = snap.docs
-          .map((docItem) => normalizeModule({ id: docItem.id, ...docItem.data() }))
+        const nextClasses = (await getClassesByLecturer(user.uid))
           .sort((a, b) => (a.courseCode || '').localeCompare(b.courseCode || ''));
 
         setClasses(nextClasses);

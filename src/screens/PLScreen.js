@@ -11,14 +11,13 @@ import {
   View,
 } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { addDoc, collection, doc, getDocs, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { db } from '../config/firebase';
-import { Header, RatingWidget } from '../sharedComponents';
+import { Header, RatingWidget } from '../sharedComponents/SharedComponents';
 import { getCourseOptionsForFaculty, getFacultyOptions, prospectusCatalog } from '../prospectusData';
 import { useAuth } from '../context/AuthContext';
 import { DropdownField, EmptyState, InfoRows, PageSection, StatsGrid } from '../components/AppUI';
-import { getCourseLabel, getModuleCode, getModuleLabel, normalizeModule, normalizeReport } from '../utils/academicStructure';
+import { assignLecturerToClass, createClass, getClasses, getCollectionItems, getRatings, getReports, getUsers } from '../services/firestore';
+import { getCourseLabel, getModuleCode, getModuleLabel } from '../utils/academicStructure';
 
 const Tab = createBottomTabNavigator();
 
@@ -33,19 +32,18 @@ function usePLData() {
   async function refresh() {
     setLoading(true);
     try {
-      const [classesSnap, reportsSnap, usersSnap, ratingsSnap, attendanceSnap] = await Promise.all([
-        getDocs(collection(db, 'classes')),
-        getDocs(collection(db, 'reports')),
-        getDocs(collection(db, 'users')),
-        getDocs(collection(db, 'ratings')),
-        getDocs(collection(db, 'studentAttendance')),
+      const [classes, reports, users, ratings, attendance] = await Promise.all([
+        getClasses(),
+        getReports(),
+        getUsers(),
+        getRatings(),
+        getCollectionItems('studentAttendance'),
       ]);
-
-      setClasses(classesSnap.docs.map((item) => normalizeModule({ id: item.id, ...item.data() })));
-      setReports(reportsSnap.docs.map((item) => normalizeReport({ id: item.id, ...item.data() })));
-      setUsers(usersSnap.docs.map((item) => ({ id: item.id, ...item.data() })));
-      setRatings(ratingsSnap.docs.map((item) => ({ id: item.id, ...item.data() })));
-      setAttendance(attendanceSnap.docs.map((item) => ({ id: item.id, ...item.data() })));
+      setClasses(classes);
+      setReports(reports);
+      setUsers(users);
+      setRatings(ratings);
+      setAttendance(attendance);
     } catch (error) {
       Alert.alert('Error', error.message || 'Failed to load program data.');
     }
@@ -166,7 +164,7 @@ function ModulesTab({ data, selectedFacultyId, setSelectedFacultyId, refresh }) 
 
     setSaving(true);
     try {
-      await addDoc(collection(db, 'classes'), {
+      await createClass({
         facultyName: selectedFaculty.name,
         courseName: selectedCourse.name,
         courseCode: selectedCourse.code,
@@ -178,8 +176,6 @@ function ModulesTab({ data, selectedFacultyId, setSelectedFacultyId, refresh }) 
         lecturerId: selectedLecturer?.id || null,
         lecturerName: selectedLecturer?.name || null,
         lecturerEmail: selectedLecturer?.email || null,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
       });
 
       setModuleName('');
@@ -202,12 +198,7 @@ function ModulesTab({ data, selectedFacultyId, setSelectedFacultyId, refresh }) 
 
     setAssigning(true);
     try {
-      await updateDoc(doc(db, 'classes', selectedModule.id), {
-        lecturerId: selectedLecturer.id,
-        lecturerName: selectedLecturer.name || null,
-        lecturerEmail: selectedLecturer.email || null,
-        updatedAt: serverTimestamp(),
-      });
+      await assignLecturerToClass(selectedModule.id, selectedLecturer);
       await refresh();
       Alert.alert('Success', 'Lecturer assigned to module.');
     } catch (error) {

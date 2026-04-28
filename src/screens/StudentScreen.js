@@ -2,11 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { addDoc, collection, getDocs, query, serverTimestamp, where } from 'firebase/firestore';
-import { AttendanceTable, CoursePicker, Header, MonitorCard, RatingWidget } from '../sharedComponents';
-import { db } from '../config/firebase';
+import { AttendanceTable, CoursePicker, Header, MonitorCard, RatingWidget } from '../sharedComponents/SharedComponents';
 import { useAuth } from '../context/AuthContext';
-import { getCourseLabel, getModuleCode, getModuleLabel, moduleMatchesStudentCourse, normalizeModule } from '../utils/academicStructure';
+import { getStudentAttendance, getStudentModules, signStudentAttendance } from '../services/firestore';
+import { getCourseLabel, getModuleCode, getModuleLabel } from '../utils/academicStructure';
 
 const Tab = createBottomTabNavigator();
 
@@ -88,16 +87,7 @@ function StudentAttendancePanel({ user, profile, selectedCourse }) {
     async function fetchAttendance() {
       setLoading(true);
       try {
-        const attendanceQuery = query(
-          collection(db, 'studentAttendance'),
-          where('studentId', '==', user.uid),
-          where('moduleCode', '==', moduleCode)
-        );
-        const snap = await getDocs(attendanceQuery);
-        const nextRecords = snap.docs
-          .map((item) => ({ id: item.id, ...item.data() }))
-          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-        setRecords(nextRecords);
+        setRecords(await getStudentAttendance(user.uid, moduleCode));
       } catch (error) {
         setRecords([]);
       }
@@ -121,17 +111,16 @@ function StudentAttendancePanel({ user, profile, selectedCourse }) {
 
     setSigning(true);
     try {
-      await addDoc(collection(db, 'studentAttendance'), {
+      await signStudentAttendance({
         studentId: user.uid,
         studentName: profile?.name || user.email || 'Student',
-        facultyName: selectedCourse.facultyName || profile?.facultyName || null,
-        courseName: selectedCourse.courseName || profile?.courseName || null,
-        courseCode: selectedCourse.courseCode || profile?.courseCode || null,
-        className: selectedCourse.className || selectedCourse.moduleName || null,
-        moduleCode,
-        status: 'present',
-        dateKey: todayKey,
-        createdAt: serverTimestamp(),
+        selectedCourse: {
+          ...selectedCourse,
+          facultyName: selectedCourse.facultyName || profile?.facultyName || null,
+          courseName: selectedCourse.courseName || profile?.courseName || null,
+          courseCode: selectedCourse.courseCode || profile?.courseCode || null,
+          moduleCode,
+        },
       });
 
       Alert.alert('Success', 'Attendance signed successfully.');
@@ -294,10 +283,7 @@ export default function StudentScreen() {
     async function fetchCourses() {
       setLoadingCourses(true);
       try {
-        const snap = await getDocs(collection(db, 'classes'));
-        const facultyCourses = snap.docs
-          .map((docItem) => normalizeModule({ id: docItem.id, ...docItem.data() }))
-          .filter((item) => moduleMatchesStudentCourse(item, profile))
+        const facultyCourses = (await getStudentModules(profile))
           .sort((a, b) => (a.courseCode || '').localeCompare(b.courseCode || ''));
         setModules(facultyCourses);
         setSelectedCourse((current) => {

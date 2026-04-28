@@ -11,16 +11,8 @@ import {
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {
-  addDoc,
-  collection,
-  getDocs,
-  query,
-  serverTimestamp,
-  where,
-} from 'firebase/firestore';
-import { db } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
+import { getReports, getReportsByField, submitRating } from '../services/firestore';
 import { getCourseLabel, getModuleCode, getModuleLabel } from '../utils/academicStructure';
 
 export function Header({ title }) {
@@ -90,13 +82,12 @@ export function RatingWidget({ targetId, targetName, context = 'general' }) {
 
     setSaving(true);
     try {
-      await addDoc(collection(db, 'ratings'), {
+      await submitRating({
         targetId,
         targetName,
         context,
         rating,
         ratedBy: user.uid,
-        createdAt: serverTimestamp(),
       });
       const nextSaved = {
         rating,
@@ -249,19 +240,14 @@ export function AttendanceTable({ courseCode, moduleCode = null }) {
 
     async function fetchAttendance() {
       try {
-        const attendanceQuery = query(
-          collection(db, 'reports'),
-          where(moduleCode ? 'moduleCode' : 'courseCode', '==', moduleCode || courseCode)
-        );
-        const snap = await getDocs(attendanceQuery);
-        const nextReports = snap.docs
-          .map((d) => ({ id: d.id, ...d.data() }))
+        const nextReports = await getReportsByField(moduleCode ? 'moduleCode' : 'courseCode', moduleCode || courseCode);
+        const sortedReports = nextReports
           .sort((a, b) => {
             const aTime = a.createdAt?.seconds || 0;
             const bTime = b.createdAt?.seconds || 0;
             return bTime - aTime;
           });
-        setReports(nextReports);
+        setReports(sortedReports);
         setError(null);
       } catch (fetchError) {
         setReports([]);
@@ -324,20 +310,13 @@ export function MonitorCard({
   useEffect(() => {
     async function fetchReports() {
       try {
-        const queryParts = [collection(db, 'reports')];
-
-        if (moduleCode || courseCode) {
-          queryParts.push(where(moduleCode ? 'moduleCode' : 'courseCode', '==', moduleCode || courseCode));
-        }
-
-        if (submittedBy) {
-          queryParts.push(where('submittedBy', '==', submittedBy));
-        }
-
-        const reportsQuery = query(...queryParts);
-        const snap = await getDocs(reportsQuery);
-        const nextReports = snap.docs
-          .map((d) => ({ id: d.id, ...d.data() }))
+        const sourceReports = moduleCode || courseCode
+          ? await getReportsByField(moduleCode ? 'moduleCode' : 'courseCode', moduleCode || courseCode)
+          : submittedBy
+            ? await getReportsByField('submittedBy', submittedBy)
+            : await getReports();
+        const nextReports = sourceReports
+          .filter((item) => !submittedBy || item.submittedBy === submittedBy)
           .filter((item) => !facultyName || item.facultyName === facultyName)
           .sort((a, b) => {
             const aTime = a.createdAt?.seconds || 0;

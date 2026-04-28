@@ -13,7 +13,7 @@ import {
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { doc, getDocs, collection, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { CoursePicker, Header, MonitorCard, RatingWidget } from '../sharedComponents';
+import { CoursePicker, Header, MonitorCard, RatingWidget } from '../sharedComponents/SharedComponents';
 import { useAuth } from '../context/AuthContext';
 import { getCourseLabel, getModuleCode, getModuleLabel, normalizeModule, normalizeReport } from '../utils/academicStructure';
 
