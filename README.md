@@ -65,7 +65,4 @@ thrilled-indigo-hummus/
 - Auth: `src/context/AuthContext.js`
 - Firestore API: `src/backend/firebase/firestore.js`
 
-## Notes
 
-- If you want all Firebase read/write code in one place, keep moving Firestore queries from screens into `src/backend/firebase/firestore.js`.
-- `src/backend/firebase/firestore.js` is now the main file to grow for collection queries like classes, reports, ratings, attendance, and users.
